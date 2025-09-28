@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Betting Game</title>
+    
+    <!-- Tailwind CSS for rapid UI development -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts for stylish typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+
+    <style>
+        /* Define custom fonts and base styles */
+        body {
+            font-family: 'Orbitron', sans-serif;
+            color: #E0E0E0;
+        }
+
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* --- Background & Page Transitions --- */
+        body {
+            /* A beautiful aesthetic gradient background */
+            background: linear-gradient(135deg, #1a0a24, #0b1a2e, #2a0b2e);
+            background-size: 400% 400%;
+            animation: gradientBG 20s ease infinite;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .page {
+            /* Smooth transitions between pages */
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            transform: scale(1);
+        }
+
+        .page.hidden {
+            opacity: 0;
+            visibility: hidden;
+            position: absolute;
+            transform: scale(0.95);
+        }
+        
+        /* --- Home Page Styling --- */
+        .decorative-frame {
+            border: 2px solid;
+            border-image: linear-gradient(45deg, #ff00ff, #00ffff, #ff00ff) 1;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5), 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Title letter glow/bounce animation */
+        .title-letter {
+            display: inline-block;
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55), text-shadow 0.3s ease;
+        }
+
+        .title-letter:hover {
+            transform: translateY(-10px) scale(1.1);
+            text-shadow: 0 0 15px #00ffff, 0 0 25px #00ffff;
+        }
+
+        /* Stylish buttons with hover effects */
+        .menu-btn {
+            background-color: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .menu-btn:hover {
+            background-color: rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+            transform: scale(1.05);
+        }
+
+        /* Footer glowing effect */
+        .footer-glow {
+            animation: footerGlow 3s infinite alternate;
+        }
+
+        @keyframes footerGlow {
+            from { text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff; }
+            to { text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff, 0 0 30px #ff00ff; }
+        }
+
+        /* --- Game Interface Styling --- */
+        .die {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            position: relative;
+            transition: transform 0.5s ease-out;
+        }
+        
+        .die svg {
+             filter: drop-shadow(0 0 5px #fff);
+             transition: all 0.3s ease;
+        }
+
+        /* Animation for when dice are rolling */
+        .die.rolling {
+            animation: rollAnimation 1s ease-out;
+        }
+
+        @keyframes rollAnimation {
+            0% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(180deg) scale(1.2); }
+            50% { transform: rotate(-180deg) scale(0.8); }
+            75% { transform: rotate(90deg) scale(1.1); }
+            100% { transform: rotate(0deg) scale(1); }
+        }
+
+        /* Shake animation for the roll button */
+        .roll-btn.shaking {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        /* Custom styles for form inputs */
+        .form-input {
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 255, 255, 0.5);
+        }
+        
+        /* Dice face selection buttons */
+        .face-select-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .face-select-btn.selected {
+             border: 1px solid #00ffff;
+             box-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+        }
+        .face-select-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a0a24;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #00ffff;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #55ffff;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Container for all content -->
+    <div class="w-full max-w-7xl mx-auto">
+
+        <!-- Home Page -->
+        <section id="home-page" class="page">
+            <div class="decorative-frame p-8 rounded-lg text-center backdrop-blur-sm bg-black/30">
+                <h1 id="main-title" class="font-cinzel text-4xl md:text-6xl lg:text-8xl font-bold mb-12 text-white">
+                    <!-- Title letters will be injected by JS -->
+                </h1>
+                <div class="space-y-6">
+                    <button onclick="showPage('game-page')" class="menu-btn text-xl md:text-2xl font-bold py-3 px-10 rounded-lg text-cyan-300 w-full max-w-xs">Start Game</button>
+                    <button onclick="showPage('how-to-play-page')" class="menu-btn text-xl md:text-2xl font-bold py-3 px-10 rounded-lg text-cyan-300 w-full max-w-xs">How to Play</button>
+                </div>
+                <footer class="mt-16 font-cinzel text-lg footer-glow text-fuchsia-400">By Nexthunter</footer>
+            </div>
+        </section>
+
+        <!-- How to Play Page -->
+        <section id="how-to-play-page" class="page hidden">
+            <div class="decorative-frame p-8 rounded-lg backdrop-blur-sm bg-black/30 max-w-3xl mx-auto">
+                 <h2 class="font-cinzel text-3xl md:text-4xl font-bold mb-6 text-center text-cyan-300">How to Play</h2>
+                 <div class="space-y-4 text-left text-lg">
+                     <p><strong class="text-cyan-400">1. Add Players:</strong> Click the "Add Player" button to create a betting slot for each person playing.</p>
+                     <p><strong class="text-cyan-400">2. Place Bets:</strong> Each player enters their name, the amount of money they wish to bet, and selects one of the six faces (e.g., 🌙, ☀️) to bet on.</p>
+                     <p><strong class="text-cyan-400">3. Roll the Dice:</strong> Once all bets are placed, the "Roll Dice" button is clicked. Six dice are rolled at once.</p>
+                     <p><strong class="text-cyan-400">4. Calculate Winnings:</strong>
+                        <ul class="list-disc list-inside ml-4 space-y-2 mt-2">
+                            <li>If your chosen face appears <strong class="text-green-400">n</strong> times, you win <strong class="text-green-400">n</strong> times your bet amount. (e.g., Bet $10, face appears 3 times, you win $30).</li>
+                            <li>If your chosen face does <strong class="text-red-400">not</strong> appear, you lose your bet amount.</li>
+                        </ul>
+                     </p>
+                     <p><strong class="text-cyan-400">5. Check the Scoreboard:</strong> The results for all players are displayed in the table at the bottom.</p>
+                 </div>
+                 <div class="text-center mt-8">
+                     <button onclick="showPage('home-page')" class="menu-btn text-xl font-bold py-2 px-8 rounded-lg text-cyan-300">Back to Home</button>
+                 </div>
+            </div>
+        </section>
+
+        <!-- Game Interface Page -->
+        <section id="game-page" class="page hidden">
+            <div class="space-y-8">
+                <!-- Dice Display -->
+                <div class="flex justify-center items-center gap-2 sm:gap-4 flex-wrap" id="dice-container">
+                    <!-- Dice will be injected by JS -->
+                </div>
+                <div class="text-center">
+                    <button id="roll-button" class="menu-btn text-2xl font-bold py-4 px-12 rounded-lg text-cyan-300 transition-transform duration-300 hover:scale-105 active:scale-95">Roll Dice</button>
+                </div>
+
+                <!-- Player Betting Section -->
+                <div class="bg-black/30 p-4 sm:p-6 rounded-lg border border-cyan-700/50">
+                    <h2 class="font-cinzel text-2xl font-bold mb-4 text-cyan-300">Player Bets</h2>
+                    <div id="players-container" class="space-y-4 max-h-64 overflow-y-auto pr-2">
+                        <!-- Player input rows will be injected by JS -->
+                    </div>
+                    <button id="add-player-button" class="mt-4 menu-btn text-md font-bold py-2 px-6 rounded-lg text-cyan-300 text-sm">+ Add Player</button>
+                </div>
+
+                <!-- Scoreboard Section -->
+                <div id="scoreboard-container" class="bg-black/30 p-4 sm:p-6 rounded-lg border border-fuchsia-700/50 hidden">
+                    <h2 class="font-cinzel text-2xl font-bold mb-4 text-fuchsia-300">Results</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-fuchsia-500/50">
+                                    <th class="p-2">Player</th>
+                                    <th class="p-2">Bet Face</th>
+                                    <th class="p-2">Bet Amount</th>
+                                    <th class="p-2">Appeared</th>
+                                    <th class="p-2">Result</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scoreboard-body">
+                                <!-- Scoreboard rows will be injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                     <button onclick="showPage('home-page')" class="menu-btn text-lg font-bold py-2 px-8 rounded-lg text-cyan-300">Back to Home</button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const DICE_FACES = [
+            { id: 'moon',   icon: `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-200"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>`},
+            { id: 'sun',    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-200"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>`},
+            { id: 'flower', icon: `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-pink-300"><path d="M12 7.5a4.5 4.5 0 1 1 4.5 4.5M12 7.5A4.5 4.5 0 1 0 7.5 12M12 7.5V3m9 4.5h4.5M12 16.5a4.5 4.5 0 1 1-4.5-4.5M12 16.5A4.5 4.5 0 1 0 16.5 12M12 16.5v4.5M3 12h4.5"></path></svg>`},
+            { id: 'crystal',icon: `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-300"><path d="m11.3 2.2-6.6 6.6c-.4.4-.4 1 0 1.4l8.5 8.5c.4.4 1 .4 1.4 0l6.6-6.6c.4-.4.4-1 0-1.4L12.7 2.2c-.4-.4-1-.4-1.4 0z"></path><path d="m5 8.5 10.5 10.5"></path></svg>`},
+            { id: 'bolt',   icon: `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-300"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path></svg>`},
+            { id: 'butterfly', icon: `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-300"><path d="M14 12c0-4.5-3-8-3-8s-1.5 1.5-2.5 4c-1 2.5-1 4.5 0 6s1.5 2 2.5 2s3 1.5 3 2.5c0 1-1.5 2.5-1.5 2.5s3.5-1 4.5-5c1-4-.5-8.5-4.5-9.5Z"></path><path d="M10 12c0-4.5 3-8 3-8s1.5 1.5 2.5 4c1 2.5 1 4.5 0 6s-1.5 2-2.5 2s-3 1.5-3 2.5c0 1 1.5 2.5 1.5 2.5s-3.5-1-4.5-5c-1-4 .5-8.5 4.5-9.5Z"></path></svg>`},
+        ];
+
+        // --- DOM ELEMENTS ---
+        const pages = document.querySelectorAll('.page');
+        const mainTitle = document.getElementById('main-title');
+        const diceContainer = document.getElementById('dice-container');
+        const rollButton = document.getElementById('roll-button');
+        const playersContainer = document.getElementById('players-container');
+        const addPlayerButton = document.getElementById('add-player-button');
+        const scoreboardContainer = document.getElementById('scoreboard-container');
+        const scoreboardBody = document.getElementById('scoreboard-body');
+
+        // --- STATE ---
+        let playerCount = 0;
+        let isRolling = false;
+        
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            setupHomePage();
+            setupGamePage();
+            addPlayer(); // Start with one player
+        });
+        
+        // --- SETUP FUNCTIONS ---
+        function setupHomePage() {
+            // Create title with spans for animation
+            const titleText = "Dice Betting Game";
+            mainTitle.innerHTML = titleText
+                .split('')
+                .map(letter => `<span class="title-letter">${letter === ' ' ? '&nbsp;' : letter}</span>`)
+                .join('');
+        }
+        
+        function setupGamePage() {
+            // Create initial dice visuals
+            diceContainer.innerHTML = '';
+            for (let i = 0; i < 6; i++) {
+                const die = document.createElement('div');
+                die.className = 'die w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-lg flex items-center justify-center p-2';
+                die.innerHTML = `
+                    <div class="w-1/2 h-1/2">${DICE_FACES[i].icon}</div>
+                    <div class="absolute top-1 right-2 text-xl font-bold text-white opacity-0 transition-opacity"></div>`;
+                diceContainer.appendChild(die);
+            }
+            // Event listeners
+            addPlayerButton.addEventListener('click', addPlayer);
+            rollButton.addEventListener('click', handleRoll);
+        }
+
+        // --- PAGE NAVIGATION ---
+        function showPage(pageId) {
+            pages.forEach(page => {
+                if (page.id === pageId) {
+                    // Make sure element is not positioned absolutely before showing
+                    page.style.position = 'relative'; 
+                    page.classList.remove('hidden');
+                } else {
+                    page.classList.add('hidden');
+                    // Position element absolutely after transition ends
+                    setTimeout(() => {
+                         if(page.classList.contains('hidden')) page.style.position = 'absolute';
+                    }, 500);
+                }
+            });
+        }
+
+        // --- PLAYER MANAGEMENT ---
+        function addPlayer() {
+            if (playerCount >= 20) {
+                alert("Maximum of 20 players reached.");
+                return;
+            }
+            playerCount++;
+            const playerRow = document.createElement('div');
+            playerRow.id = `player-row-${playerCount}`;
+            playerRow.className = 'grid grid-cols-1 sm:grid-cols-12 gap-2 items-center';
+
+            playerRow.innerHTML = `
+                <input type="text" placeholder="Player ${playerCount}" class="form-input p-2 rounded col-span-1 sm:col-span-3">
+                <input type="number" placeholder="Bet $" min="1" class="form-input p-2 rounded col-span-1 sm:col-span-2">
+                <div class="col-span-1 sm:col-span-6 flex gap-1 justify-center flex-wrap">
+                    ${DICE_FACES.map((face, index) => `
+                        <button class="face-select-btn p-1 rounded-md w-10 h-10 ${index === 0 ? 'selected' : ''}" data-face="${face.id}">
+                            <div class="w-full h-full">${face.icon}</div>
+                        </button>
+                    `).join('')}
+                </div>
+                <button class="text-red-400 hover:text-red-200 col-span-1" onclick="removePlayer(${playerCount})">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                </button>
+            `;
+            
+            playersContainer.appendChild(playerRow);
+            
+            // Add event listeners for face selection
+            playerRow.querySelectorAll('.face-select-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    // e.currentTarget should be the button
+                    const clickedButton = e.currentTarget;
+                    // Remove 'selected' from siblings
+                    clickedButton.parentElement.querySelectorAll('.face-select-btn').forEach(sibling => {
+                        sibling.classList.remove('selected');
+                    });
+                    // Add 'selected' to clicked button
+                    clickedButton.classList.add('selected');
+                });
+            });
+        }
+        
+        function removePlayer(id) {
+            const playerRow = document.getElementById(`player-row-${id}`);
+            if (playerRow) {
+                playerRow.remove();
+                // Note: playerCount is not decremented to avoid ID collisions.
+                // A more robust system would re-index, but this is simpler.
+            }
+        }
+        
+        // --- GAME LOGIC ---
+        function handleRoll() {
+            if (isRolling) return;
+
+            // 1. Gather player data and validate
+            const players = [];
+            const playerRows = playersContainer.querySelectorAll('[id^="player-row-"]');
+            let hasError = false;
+
+            playerRows.forEach(row => {
+                const nameInput = row.querySelector('input[type="text"]');
+                const betInput = row.querySelector('input[type="number"]');
+                const selectedFaceBtn = row.querySelector('.face-select-btn.selected');
+                
+                const name = nameInput.value.trim() || nameInput.placeholder;
+                const betAmount = parseInt(betInput.value);
+                
+                if (isNaN(betAmount) || betAmount <= 0) {
+                    betInput.style.borderColor = 'red';
+                    hasError = true;
+                } else {
+                    betInput.style.borderColor = '';
+                }
+
+                players.push({
+                    name,
+                    betAmount,
+                    betFace: selectedFaceBtn.dataset.face
+                });
+            });
+            
+            if (hasError) {
+                alert("Please enter a valid bet amount (greater than 0) for all players.");
+                return;
+            }
+            
+            if(players.length === 0){
+                alert("Please add at least one player to start the game.");
+                return;
+            }
+
+            // 2. Start rolling animation
+            isRolling = true;
+            rollButton.classList.add('shaking');
+            scoreboardContainer.classList.add('hidden');
+            const diceElements = document.querySelectorAll('.die');
+            diceElements.forEach(die => die.classList.add('rolling'));
+            
+            // Clear previous counts
+            document.querySelectorAll('.die .absolute').forEach(el => el.classList.add('opacity-0'));
+
+            // 3. Wait for animation to finish, then calculate results
+            setTimeout(() => {
+                const rollResults = Array.from({ length: 6 }, () => DICE_FACES[Math.floor(Math.random() * DICE_FACES.length)]);
+                const faceCounts = {};
+                DICE_FACES.forEach(face => faceCounts[face.id] = 0);
+                
+                // Update dice visuals and count results
+                rollResults.forEach((result, index) => {
+                    diceElements[index].querySelector('div').innerHTML = result.icon;
+                    faceCounts[result.id]++;
+                });
+
+                // Display counts on dice faces
+                DICE_FACES.forEach(face => {
+                    const count = faceCounts[face.id];
+                    if (count > 1) {
+                        // Find all dice showing this face and update their count display
+                        rollResults.forEach((result, index) => {
+                            if (result.id === face.id) {
+                                const countEl = diceElements[index].querySelector('.absolute');
+                                countEl.textContent = `${count}x`;
+                                countEl.classList.remove('opacity-0');
+                            }
+                        });
+                    }
+                });
+                
+                // 4. Calculate winnings and update scoreboard
+                updateScoreboard(players, faceCounts);
+
+                // 5. End rolling state
+                diceElements.forEach(die => die.classList.remove('rolling'));
+                rollButton.classList.remove('shaking');
+                isRolling = false;
+            }, 1000);
+        }
+
+        function updateScoreboard(players, faceCounts) {
+            scoreboardBody.innerHTML = '';
+
+            players.forEach(player => {
+                const timesAppeared = faceCounts[player.betFace] || 0;
+                const moneyWon = player.betAmount * timesAppeared;
+                const isWinner = timesAppeared > 0;
+
+                const row = document.createElement('tr');
+                row.className = `border-b border-gray-700/50 ${isWinner ? 'text-green-300' : 'text-red-300'}`;
+                
+                const betFaceIcon = DICE_FACES.find(f => f.id === player.betFace).icon;
+
+                row.innerHTML = `
+                    <td class="p-2 font-semibold">${player.name}</td>
+                    <td class="p-2"><div class="w-8 h-8 mx-auto">${betFaceIcon}</div></td>
+                    <td class="p-2">$${player.betAmount}</td>
+                    <td class="p-2">${timesAppeared}x</td>
+                    <td class="p-2 font-bold">${isWinner ? `+$${moneyWon}` : `-$${player.betAmount}`}</td>
+                `;
+                scoreboardBody.appendChild(row);
+            });
+
+            scoreboardContainer.classList.remove('hidden');
+        }
+
+    </script>
+</body>
+</html>
